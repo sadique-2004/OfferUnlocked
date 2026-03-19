@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google Fonts loaded via index.html */
+html {
+  height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #181828 #07070f;
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Scrollbar for main content area */
+.ou-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+.ou-scroll::-webkit-scrollbar-thumb {
+  background: #181828;
+  border-radius: 2px;
+}
+.ou-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #181828 transparent;
+}
+
+/* Gradient text utility */
+.grad-text {
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.grad-text-gold {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Checkbox pop animation */
+@keyframes checkPop {
+  0%   { transform: scale(0.5); }
+  100% { transform: scale(1); }
+}
+.animate-check-pop {
+  animation: checkPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Logo glow bleed */
+.logo-glow::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  opacity: 0.3;
+  filter: blur(6px);
+  z-index: -1;
+}
