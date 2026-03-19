@@ -26,6 +26,14 @@ export const communityData = {
   },
 
 members: [
+     {
+    name:     'AL AFRAH',
+    college:  'MOODLAKATTE INSTITUTE OF TECHNOLOGY, KUNDAPURA ',
+     year:     '2026',
+    image:    'https://image2url.com/r2/default/images/1773961374313-26fa5a5f-72e7-44f6-b424-88533b6d1e9c.png',
+    gender:   'female',
+    linkedin: 'https://www.linkedin.com/in/al-afrah',
+  },
   {
     name:     'Sampada Tiwari',
     college:  'Banasthali Vidyapith',
@@ -42,13 +50,13 @@ members: [
     gender:   'male',
     linkedin: 'www.linkedin.com/in/pavankumarbandike',
   },
-    {
-    name:     'Afrah',
-    college:  'MIT',
-     year:     '2026',
-    image:    '',
+  {
+    name:     'Soumya M Mulagund',
+    college:  'Government Engineering College Haveri',
+    year:     '2025',
+    image:    'https://image2url.com/r2/default/images/1773941869923-d3b79238-5dfe-4a10-99af-4b205a31100d.jpeg',
     gender:   'female',
-    linkedin: '',
+    linkedin: 'www.linkedin.com/in/soumyamulagund',
   },
   {
     name:     'Bharath Kumar',
@@ -101,13 +109,6 @@ members: [
     linkedin: '',
   },
 
-  {
-    name:     'Soumya M Mulagund',
-    college:  'Government Engineering College Haveri',
-    year:     '2025',
-    image:    'https://image2url.com/r2/default/images/1773941869923-d3b79238-5dfe-4a10-99af-4b205a31100d.jpeg',
-    gender:   'female',
-    linkedin: 'www.linkedin.com/in/soumyamulagund',
-  },
+
 ]
 };
