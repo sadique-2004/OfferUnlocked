@@ -2,23 +2,23 @@ import { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 
 // Layout
-import Topbar  from './Components/layout/Topbar.jsx';
-import Sidebar from './Components/layout/Sidebar';
+import Topbar  from './components/layout/Topbar.jsx';
+import Sidebar from './components/layout/Sidebar.jsx';
 
 // Sections
-import HeroSection      from './Components/sections/HeroSection';
-import BrandStatement   from './Components/sections/BrandStatement';
-import OutcomeCards     from './Components/sections/OutcomeCards';
-import MotivationBanner from './Components/sections/MotivationBanner';
+import HeroSection      from './components/sections/HeroSection.jsx';
+import BrandStatement   from './components/sections/BrandStatement.jsx';
+import OutcomeCards     from './components/sections/OutcomeCards.jsx';
+import MotivationBanner from './components/sections/MotivationBanner.jsx';
 
 // Roadmap
-import RoadmapSection from './Components/roadmap/RoadmapSection';
+import RoadmapSection from './Components/roadmap/RoadmapSection.jsx';
 
 // Community
-import CommunitySection from './Components/community/CommunitySection';
+import CommunitySection from './Components/community/CommunitySection.jsx';
 
 // Admin
-import AdminPanel from './Components/admin/AdminPanel';
+import AdminPanel from './components/admin/AdminPanel.jsx';
 
 // ─── Inner shell (needs AppContext) ─────────────────────
 function Shell() {
