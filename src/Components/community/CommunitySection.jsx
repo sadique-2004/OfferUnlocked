@@ -86,7 +86,7 @@ function LogoMark() {
         border:'1px solid rgba(139,92,246,.35)', display:'flex', alignItems:'center',
         justifyContent:'center', overflow:'hidden',
       }}>
-        <img src="/logo.png" alt="Logo"
+        <img src="/favicon.png" alt="Logo"
           style={{ width:'22px', height:'22px', objectFit:'contain' }}
           onError={e => { e.target.style.display='none'; e.target.parentNode.textContent='⚡'; }}
         />

@@ -3,324 +3,596 @@ import { useApp } from '../../context/AppContext';
 import { roadmapData } from '../../data/roadmap';
 import { useMemo } from 'react';
 
-/* ─────────────────────────────────────────────────────────
-   Design tokens (locked)
-   bg #05050e · #8b5cf6 · #6366f1 · #38bdf8 · #22c55e
-   Syne 800 · DM Mono · Outfit 300-700 · JetBrains Mono (editor)
-───────────────────────────────────────────────────────── */
-
-const fadeUp = (delay = 0) => ({
-  initial:    { opacity: 0, y: 18 },
-  animate:    { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: 'easeOut', delay },
-});
+/* ─────────────────────────────────────────────────────────────
+   OfferUnlocked — Hero Section v4
+   Right column : Roadmap Preview Card
+   Layout       : Tighter & more compact overall
+   Tokens       : #05050e · #8b5cf6 · #6366f1 · #38bdf8 · #22c55e
+   Fonts        : Syne 800 · DM Mono · Outfit 300-700 · JetBrains Mono
+───────────────────────────────────────────────────────────── */
 
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-  @keyframes hs-pulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}
-  @keyframes hs-blink{0%,100%{opacity:1}50%{opacity:0}}
-  @keyframes hs-scan{0%{transform:translateY(-100%)}100%{transform:translateY(600%)}}
+  /* ── Keyframes ── */
+  @keyframes ou-pulse   { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.7)} }
+  @keyframes ou-shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+  @keyframes ou-drift-a { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(14px,-10px) scale(1.04)} 70%{transform:translate(-8px,14px) scale(.97)} }
+  @keyframes ou-drift-b { 0%,100%{transform:translate(0,0)} 35%{transform:translate(-12px,8px)} 70%{transform:translate(10px,-7px)} }
+  @keyframes ou-noise   { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-1%,1%)} 50%{transform:translate(1%,-1%)} 75%{transform:translate(-1%,-1%)} }
+  @keyframes ou-bar     { from{width:0%} to{width:var(--bw)} }
+  @keyframes ou-fadeln  { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes ou-line-in { from{height:0} to{height:100%} }
 
-  /* scanline sweep */
-  .hs-code-body::before{
-    content:'';position:absolute;left:0;right:0;height:44px;pointer-events:none;
-    background:linear-gradient(transparent,rgba(139,92,246,.022),transparent);
-    animation:hs-scan 4s linear infinite;
+  /* ── Root ── */
+  .ou-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: clamp(48px,7vh,72px) clamp(20px,4.5vw,60px);
+    background: #05050e;
+    border-bottom: 1px solid rgba(255,255,255,.05);
   }
-  /* blinking cursor */
-  .hs-cursor{
-    display:inline-block;width:6px;height:11px;background:#8b5cf6;
-    vertical-align:middle;margin-left:1px;border-radius:1px;
-    animation:hs-blink 1.1s step-end infinite;
-  }
-  .hs-cta:hover{
-    transform:translateY(-2px) !important;
-    box-shadow:0 8px 32px rgba(139,92,246,.55),inset 0 1px 0 rgba(255,255,255,.2) !important;
+  .ou-hero::after {
+    content:'';
+    position:absolute; inset:-150%;
+    width:400%; height:400%;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity:.02; pointer-events:none;
+    animation:ou-noise 9s steps(1) infinite;
   }
 
-  /* Java syntax colours */
-  .jkw { color:#c084fc; }
-  .jty { color:#67e8f9; }
-  .jfn { color:#a5f3fc; }
-  .jst { color:#86efac; }
-  .jcm { color:#3d3659; font-style:italic; }
-  .jsy { color:#e879f9; }
-  .jnm { color:#fb923c; }
-  .jan { color:#fbbf24; }
-  .jpl { color:#ccc5e8; }
+  /* dot grid */
+  .ou-dotgrid {
+    position:absolute; inset:0;
+    background-image:radial-gradient(rgba(139,92,246,.085) 1px, transparent 1px);
+    background-size:26px 26px;
+    mask-image:radial-gradient(ellipse 78% 68% at 9% 32%, black 8%, transparent 65%);
+    pointer-events:none;
+  }
 
-  /* indent helpers */
-  .i1{padding-left:16px;}
-  .i2{padding-left:32px;}
-  .i3{padding-left:48px;}
-
-  /* layout breakpoints */
-  .hs-layout{
+  /* ── Grid layout ── */
+  .ou-grid {
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:clamp(24px,4vw,48px);
+    grid-template-columns:1.08fr .92fr;
+    gap:clamp(28px,4.5vw,54px);
     align-items:center;
+    position:relative; z-index:2;
+    width:100%; max-width:1120px;
+    margin:0 auto;
   }
-  @media(max-width:800px){
-    .hs-layout{ grid-template-columns:1fr; }
-    .hs-editor-col{ display:none; }          /* hide editor on tablet/mobile */
+  @media(max-width:840px){
+    .ou-grid{ grid-template-columns:1fr; }
+    .ou-right-col{ display:none; }
   }
-  @media(max-width:480px){
-    .hs-section{ padding:40px 18px !important; }
+  @media(max-width:460px){
+    .ou-hero{ padding:44px 16px; }
+  }
+
+  /* ── Badge ── */
+  .ou-badge {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:4px 12px 4px 8px; border-radius:100px;
+    background:rgba(34,197,94,.065); border:1px solid rgba(34,197,94,.16);
+    backdrop-filter:blur(12px); margin-bottom:14px;
+    cursor:default; transition:background .25s,border-color .25s;
+  }
+  .ou-badge:hover{ background:rgba(34,197,94,.11); border-color:rgba(34,197,94,.28); }
+
+  /* ── Eyebrow ── */
+  .ou-eyebrow{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+
+  /* ── Headline ── */
+  .ou-h1-ghost {
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:clamp(14px,1.7vw,21px); letter-spacing:-.028em;
+    color:rgba(255,255,255,.19); line-height:1; margin-bottom:2px;
+  }
+  .ou-h1-main {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:clamp(33px,4.2vw,54px); letter-spacing:-.055em; line-height:.96;
+    background:linear-gradient(105deg,#f5f0ff 0%,#c4b5fd 28%,#818cf8 58%,#38bdf8 100%);
+    background-size:200% auto;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation:ou-shimmer 5s linear infinite;
+    margin-bottom:7px;
+  }
+  .ou-brand-line {
+    font-family:'Syne',sans-serif; font-weight:800;
+    font-size:clamp(13px,1.3vw,17px); letter-spacing:-.02em;
+    background:linear-gradient(135deg,#c4b5fd,#818cf8);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:16px; display:block;
+  }
+
+  /* ── Body / tagline ── */
+  .ou-body {
+    font-family:'Outfit',sans-serif; font-weight:300;
+    font-size:clamp(12.5px,1.05vw,14px); line-height:1.88;
+    color:rgba(255,255,255,.34); max-width:400px; margin-bottom:5px;
+  }
+  .ou-tagline {
+    font-family:'DM Mono',monospace; font-size:8.5px;
+    color:#2a2646; letter-spacing:.09em; margin-bottom:22px;
+  }
+
+  /* ── CTAs ── */
+  .ou-cta-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+  .ou-cta-primary {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:10px 20px; border-radius:8px; border:none;
+    background:linear-gradient(135deg,#8b5cf6,#6366f1);
+    color:#fff; font-family:'Outfit',sans-serif; font-size:12.5px; font-weight:600;
+    cursor:pointer; letter-spacing:-.01em;
+    box-shadow:0 0 0 1px rgba(139,92,246,.38),0 4px 16px rgba(139,92,246,.24),inset 0 1px 0 rgba(255,255,255,.15);
+    transition:all .2s ease; position:relative; overflow:hidden;
+  }
+  .ou-cta-primary::before{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 55%);
+    opacity:0; transition:opacity .2s;
+  }
+  .ou-cta-primary:hover{ transform:translateY(-2px); box-shadow:0 0 0 1px rgba(139,92,246,.58),0 10px 32px rgba(139,92,246,.4),inset 0 1px 0 rgba(255,255,255,.15); }
+  .ou-cta-primary:hover::before{ opacity:1; }
+  .ou-cta-primary:active{ transform:translateY(0); }
+
+  .ou-cta-ghost {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 16px; border-radius:8px;
+    border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.018);
+    color:rgba(255,255,255,.4); font-family:'Outfit',sans-serif;
+    font-size:12px; font-weight:500; cursor:pointer; transition:all .2s;
+  }
+  .ou-cta-ghost:hover{ border-color:rgba(255,255,255,.15); color:rgba(255,255,255,.75); background:rgba(255,255,255,.038); }
+
+  /* ── Stat cards ── */
+  .ou-stats {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:4px; margin-top:22px; padding-top:18px;
+    border-top:1px solid rgba(255,255,255,.05);
+  }
+  @media(max-width:460px){ .ou-stats{ grid-template-columns:repeat(2,1fr); } }
+
+  .ou-stat-card {
+    padding:10px 10px 8px; border-radius:8px;
+    background:rgba(255,255,255,.016); border:1px solid rgba(255,255,255,.044);
+    transition:background .2s,border-color .2s; cursor:default;
+  }
+  .ou-stat-card:hover{ background:rgba(139,92,246,.065); border-color:rgba(139,92,246,.18); }
+  .ou-stat-n {
+    font-family:'DM Mono',monospace; font-size:clamp(14px,1.4vw,17px); font-weight:500;
+    background:linear-gradient(135deg,#c4b5fd,#818cf8,#38bdf8);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    line-height:1; margin-bottom:3px;
+  }
+  .ou-stat-l{ font-size:7.5px; color:#2a2848; font-weight:500; letter-spacing:.12em; text-transform:uppercase; }
+
+  /* ══════════════════════════════════════════════
+     ROADMAP PREVIEW CARD
+  ══════════════════════════════════════════════ */
+  .ou-rm-card {
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.07);
+    background:rgba(255,255,255,.016);
+    backdrop-filter:blur(20px);
+    overflow:hidden;
+    box-shadow:0 0 0 1px rgba(139,92,246,.06),0 20px 60px rgba(0,0,0,.55),0 0 50px rgba(139,92,246,.04);
+  }
+
+  /* card header */
+  .ou-rm-header {
+    padding:14px 18px 12px;
+    border-bottom:1px solid rgba(255,255,255,.055);
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(255,255,255,.012);
+  }
+
+  /* card body: scrollable timeline */
+  .ou-rm-body {
+    padding:6px 0 4px;
+    max-height:340px;
+    overflow-y:auto;
+    scrollbar-width:none;
+  }
+  .ou-rm-body::-webkit-scrollbar{ display:none; }
+
+  /* timeline row */
+  .ou-rm-row {
+    display:flex; gap:0;
+    padding:0 18px;
+    position:relative;
+    cursor:pointer;
+    transition:background .18s;
+  }
+  .ou-rm-row:hover{ background:rgba(139,92,246,.045); }
+  .ou-rm-row:hover .ou-rm-month-num{ color:#c4b5fd; }
+
+  /* left: month spine */
+  .ou-rm-spine {
+    display:flex; flex-direction:column; align-items:center;
+    width:32px; flex-shrink:0; padding-top:14px;
+    position:relative;
+  }
+  .ou-rm-dot {
+    width:8px; height:8px; border-radius:50%; flex-shrink:0; z-index:1;
+    position:relative;
+    transition:box-shadow .2s;
+  }
+  .ou-rm-row:hover .ou-rm-dot{ box-shadow:0 0 10px rgba(139,92,246,.6); }
+  .ou-rm-vline {
+    width:1px; flex:1; min-height:12px;
+    background:linear-gradient(to bottom,rgba(255,255,255,.07),transparent);
+  }
+
+  /* right: month content */
+  .ou-rm-content {
+    flex:1; padding:12px 0 14px 12px;
+    border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .ou-rm-row:last-child .ou-rm-content{ border-bottom:none; }
+
+  .ou-rm-month-num {
+    font-family:'DM Mono',monospace; font-size:8px;
+    color:#2e2a50; letter-spacing:.1em; text-transform:uppercase;
+    margin-bottom:3px; transition:color .18s;
+  }
+  .ou-rm-month-title {
+    font-family:'Syne',sans-serif; font-weight:700;
+    font-size:12.5px; letter-spacing:-.02em;
+    color:rgba(255,255,255,.8); margin-bottom:7px; line-height:1.2;
+  }
+
+  /* topic pills */
+  .ou-rm-pills{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+  .ou-rm-pill {
+    padding:2px 8px; border-radius:100px;
+    font-family:'DM Mono',monospace; font-size:8px;
+    letter-spacing:.04em; white-space:nowrap;
+    border:1px solid; transition:opacity .2s;
+  }
+
+  /* progress bar inside row */
+  .ou-rm-prog-wrap{ display:flex; align-items:center; gap:7px; }
+  .ou-rm-prog-track {
+    flex:1; height:2.5px; border-radius:100px;
+    background:rgba(255,255,255,.06); overflow:hidden;
+  }
+  .ou-rm-prog-fill {
+    height:100%; border-radius:100px;
+    animation:ou-bar .8s ease both;
+  }
+  .ou-rm-prog-label{
+    font-family:'DM Mono',monospace; font-size:8px;
+    color:#2e2a50; white-space:nowrap; flex-shrink:0;
+  }
+
+  /* card footer */
+  .ou-rm-footer {
+    padding:10px 18px;
+    border-top:1px solid rgba(255,255,255,.055);
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(255,255,255,.008);
   }
 `;
 
-/* ── Single code line ──────────────────────────────────── */
-function CL({ n, children }) {
-  return (
-    <div style={{ display:'flex', alignItems:'baseline', minHeight:'19px' }}>
-      <span style={{
-        width:'32px', minWidth:'32px', textAlign:'right', paddingRight:'14px',
-        color:'#2a2640', fontFamily:"'JetBrains Mono',monospace",
-        fontSize:'10px', userSelect:'none', flexShrink:0,
-      }}>
-        {n}
-      </span>
-      <span style={{
-        flex:1, fontFamily:"'JetBrains Mono',monospace",
-        fontSize:'11.5px', lineHeight:'1.72', paddingRight:'14px',
-      }}>
-        {children}
-      </span>
-    </div>
-  );
+/* ── Motion preset ── */
+const fadeUp = (delay = 0) => ({
+  initial:    { opacity:0, y:18 },
+  animate:    { opacity:1, y:0 },
+  transition: { duration:.58, ease:[.25,.46,.45,.94], delay },
+});
+
+/* Month accent palette — cycles through distinct colours */
+const MONTH_ACCENTS = [
+  { dot:'#8b5cf6', fill:'rgba(139,92,246,.12)', text:'rgba(139,92,246,.9)', bar:'linear-gradient(90deg,#8b5cf6,#6366f1)' },
+  { dot:'#38bdf8', fill:'rgba(56,189,248,.1)',  text:'rgba(56,189,248,.85)', bar:'linear-gradient(90deg,#38bdf8,#818cf8)' },
+  { dot:'#22c55e', fill:'rgba(34,197,94,.1)',   text:'rgba(34,197,94,.85)',  bar:'linear-gradient(90deg,#22c55e,#38bdf8)' },
+  { dot:'#f472b6', fill:'rgba(244,114,182,.1)', text:'rgba(244,114,182,.85)',bar:'linear-gradient(90deg,#f472b6,#8b5cf6)' },
+  { dot:'#fb923c', fill:'rgba(251,146,60,.1)',  text:'rgba(251,146,60,.85)', bar:'linear-gradient(90deg,#fb923c,#f472b6)' },
+  { dot:'#34d399', fill:'rgba(52,211,153,.1)',  text:'rgba(52,211,153,.85)', bar:'linear-gradient(90deg,#34d399,#38bdf8)' },
+];
+
+/* Derive a short display title from the month object */
+function monthTitle(mo) {
+  return mo.title || mo.name || `Month ${mo.id ?? ''}`;
 }
 
-/* Syntax helpers */
-const kw  = t => <span className="jkw">{t}</span>;
-const ty  = t => <span className="jty">{t}</span>;
-const fn  = t => <span className="jfn">{t}</span>;
-const st  = t => <span className="jst">"{t}"</span>;
-const cmt = t => <span className="jcm">{t}</span>;
-const sy  = t => <span className="jsy">{t}</span>;
-const nm  = t => <span className="jnm">{t}</span>;
-const an  = t => <span className="jan">{t}</span>;
-const pl  = t => <span className="jpl">{t}</span>;
+/* Pull up to 4 topic keywords from a month's tasks */
+function topicPills(mo) {
+  const seen = new Set();
+  const pills = [];
+  for (const wk of mo.weeks ?? []) {
+    for (const dy of wk.days ?? []) {
+      for (const task of dy.tasks ?? []) {
+        const word = (task.topic ?? task.title ?? task.name ?? '').split(' ')[0];
+        if (word && !seen.has(word)) { seen.add(word); pills.push(word); }
+        if (pills.length >= 4) break;
+      }
+      if (pills.length >= 4) break;
+    }
+    if (pills.length >= 4) break;
+  }
+  return pills;
+}
 
-/* ── Compact Java code editor ─────────────────────────── */
-function JavaEditor({ memberCount }) {
+/* ── Roadmap Preview Card ── */
+function RoadmapCard({ roadmap, taskDoneCount, taskTotalCount, onOpen }) {
+  const months = roadmap.slice(0, 6); // show up to 6 months
+
+  /* Per-month task counts */
+  const monthStats = useMemo(() => {
+    return roadmap.map(mo => {
+      let tot = 0;
+      mo.weeks?.forEach(wk => wk.days?.forEach(dy => { tot += dy.tasks?.length ?? 0; }));
+      return { weeks: mo.weeks?.length ?? 0, tasks: tot };
+    });
+  }, [roadmap]);
+
+  const totalTasks = taskTotalCount;
+  const donePct    = totalTasks > 0 ? Math.round((taskDoneCount / totalTasks) * 100) : 0;
+
   return (
-    <div style={{
-      borderRadius:'13px', overflow:'hidden',
-      border:'1px solid rgba(139,92,246,.2)',
-      boxShadow:'0 12px 50px rgba(0,0,0,.55),0 0 0 1px rgba(139,92,246,.07)',
-    }}>
-
-      {/* Window chrome */}
-      <div style={{
-        background:'#181425', padding:'9px 14px',
-        display:'flex', alignItems:'center', gap:'10px',
-        borderBottom:'1px solid rgba(255,255,255,.07)',
-      }}>
-        <div style={{ display:'flex', gap:'5px' }}>
-          {['#ff5f57','#febc2e','#28c840'].map(c => (
-            <div key={c} style={{ width:'10px', height:'10px', borderRadius:'50%', background:c }} />
-          ))}
-        </div>
-        <div style={{
-          padding:'2px 10px', borderRadius:'4px',
-          fontFamily:"'DM Mono',monospace", fontSize:'10.5px',
-          background:'rgba(139,92,246,.12)', border:'1px solid rgba(139,92,246,.2)', color:'#9490b0',
-        }}>
-          <span style={{ color:'#c4b5fd', fontWeight:500 }}>OfferUnlocked</span>.java
-        </div>
-        <span style={{ marginLeft:'auto', fontFamily:"'DM Mono',monospace", fontSize:'9.5px', color:'#3d3659', letterSpacing:'.06em' }}>
-          Java 17
-        </span>
-      </div>
-
-      {/* Code */}
-      <div className="hs-code-body" style={{ background:'#0f0d1a', padding:'12px 0', position:'relative', overflow:'hidden' }}>
-        <CL n={1}>{cmt('// OfferUnlocked — Daily Execution Engine')}</CL>
-        <CL n={2}>{cmt('// Aug 15 deadline. No excuses.')}</CL>
-        <CL n={3}>&nbsp;</CL>
-        <CL n={4}>{an('@DailySystem')}</CL>
-        <CL n={5}>{kw('public class ')}{ty('OfferUnlocked ')}{sy('{')}</CL>
-        <CL n={6}>&nbsp;</CL>
-        <CL n={7}><span className="i1">{kw('private static final ')}{ty('int ')}{pl('MEMBERS ')}{sy('= ')}{nm(memberCount)}{pl(';')}</span></CL>
-        <CL n={8}>&nbsp;</CL>
-        <CL n={9}><span className="i1">{kw('public static void ')}{fn('main')}{sy('(')}{ty('String')}{sy('[] ')}{pl('args')}{sy(') {')}</span></CL>
-        <CL n={10}>&nbsp;</CL>
-        <CL n={11}><span className="i2">{ty('Student ')}{pl('you ')}{sy('= new ')}{ty('Student')}{sy('(')}{st('you')}{sy(');')}</span></CL>
-        <CL n={12}>&nbsp;</CL>
-        <CL n={13}><span className="i2">{kw('if ')}{sy('(')}{pl('you')}{sy('.')}{fn('isConsistent')}{sy('() && ')}{pl('you')}{sy('.')}{fn('executesDaily')}{sy('()) {')}</span></CL>
-        <CL n={14}>&nbsp;</CL>
-        <CL n={15}><span className="i3">{ty('System')}{sy('.')}{pl('out')}{sy('.')}{fn('println')}{sy('(')}{st('Offer unlocked 🔓')}{sy(');')}</span></CL>
-        <CL n={16}><span className="i3">{ty('System')}{sy('.')}{pl('out')}{sy('.')}{fn('println')}{sy('(')}{st('Dream company secured ✅')}{sy(');')}</span></CL>
-        <CL n={17}>&nbsp;</CL>
-        <CL n={18}><span className="i2">{sy('} ')}{kw('else ')}{sy('{')}</span></CL>
-        <CL n={19}>&nbsp;</CL>
-        <CL n={20}><span className="i3">{ty('System')}{sy('.')}{pl('out')}{sy('.')}{fn('println')}{sy('(')}{st("Keep grinding. Don't stop.")}{sy(');')}</span></CL>
-        <CL n={21}><span className="i3">{fn('retry')}{sy('(')}{pl('you')}{sy(', ')}{st('tomorrow')}{sy(');')}</span></CL>
-        <CL n={22}>&nbsp;</CL>
-        <CL n={23}><span className="i2">{sy('}')}</span></CL>
-        <CL n={24}><span className="i1">{sy('}')}</span></CL>
-        <CL n={25}>{sy('}')}<span className="hs-cursor" /></CL>
-      </div>
-
-      {/* Status bar */}
-      <div style={{
-        background:'#181425', padding:'5px 14px',
-        display:'flex', alignItems:'center', gap:'14px',
-        borderTop:'1px solid rgba(255,255,255,.06)',
-      }}>
-        {[
-          { dot:'#22c55e', glow:'rgba(34,197,94,.8)', label:'No errors',    pulse:true },
-          { dot:'#818cf8', glow:null,                 label:'Java 17 · UTF-8' },
-        ].map(s => (
-          <div key={s.label} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
-            <div style={{
-              width:'5px', height:'5px', borderRadius:'50%', background:s.dot,
-              boxShadow: s.glow ? `0 0 5px ${s.glow}` : 'none',
-              animation: s.pulse ? 'hs-pulse 2s ease-in-out infinite' : 'none',
-            }} />
-            <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'9.5px', color:'#3d3659' }}>
-              {s.label}
-            </span>
+    <div className="ou-rm-card">
+      {/* Header */}
+      <div className="ou-rm-header">
+        <div>
+          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'8px', color:'#2e2a50', letterSpacing:'.12em', textTransform:'uppercase', marginBottom:'3px' }}>
+            Your Roadmap
           </div>
-        ))}
-        <span style={{ marginLeft:'auto', fontFamily:"'DM Mono',monospace", fontSize:'9.5px', color:'#3d3659' }}>
-          Ln 25, Col 2
-        </span>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:'15px', letterSpacing:'-.03em', color:'rgba(255,255,255,.88)' }}>
+            {roadmap.length} Months · Structured Daily
+          </div>
+        </div>
+        {/* overall progress ring */}
+        <div style={{ position:'relative', width:'40px', height:'40px', flexShrink:0 }}>
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="3"/>
+            <circle
+              cx="20" cy="20" r="16" fill="none"
+              stroke="url(#prog-grad)" strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 16}`}
+              strokeDashoffset={`${2 * Math.PI * 16 * (1 - donePct / 100)}`}
+              transform="rotate(-90 20 20)"
+              style={{ transition:'stroke-dashoffset .8s ease' }}
+            />
+            <defs>
+              <linearGradient id="prog-grad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#8b5cf6"/>
+                <stop offset="100%" stopColor="#38bdf8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div style={{
+            position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
+            fontFamily:"'DM Mono',monospace", fontSize:'9px', fontWeight:500, color:'rgba(255,255,255,.7)',
+          }}>
+            {donePct}%
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="ou-rm-body">
+        {months.map((mo, i) => {
+          const acc   = MONTH_ACCENTS[i % MONTH_ACCENTS.length];
+          const pills = topicPills(mo);
+          const ms    = monthStats[i];
+          /* simple per-month progress — 0 for now, expandable */
+          const mPct  = 0;
+
+          return (
+            <div
+              key={i}
+              className="ou-rm-row"
+              onClick={onOpen}
+              style={{ animationDelay:`${i * 60}ms` }}
+            >
+              {/* Spine */}
+              <div className="ou-rm-spine">
+                <div className="ou-rm-dot" style={{ background:acc.dot, boxShadow:`0 0 6px ${acc.dot}55` }} />
+                {i < months.length - 1 && <div className="ou-rm-vline" />}
+              </div>
+
+              {/* Content */}
+              <div className="ou-rm-content">
+                <div className="ou-rm-month-num">Month {i + 1}</div>
+                <div className="ou-rm-month-title">{monthTitle(mo)}</div>
+
+                {pills.length > 0 && (
+                  <div className="ou-rm-pills">
+                    {pills.map(p => (
+                      <span key={p} className="ou-rm-pill" style={{
+                        background: acc.fill,
+                        borderColor: acc.dot + '33',
+                        color: acc.text,
+                      }}>
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="ou-rm-prog-wrap">
+                  <div className="ou-rm-prog-track">
+                    <div className="ou-rm-prog-fill" style={{
+                      background: acc.bar,
+                      '--bw': `${mPct}%`,
+                      width: `${mPct}%`,
+                      animationDelay:`${.5 + i * .08}s`,
+                    }} />
+                  </div>
+                  <span className="ou-rm-prog-label">
+                    {ms.weeks}w · {ms.tasks} tasks
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="ou-rm-footer">
+        <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+          <div style={{ width:'5px', height:'5px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 6px rgba(34,197,94,.8)', animation:'ou-pulse 2s ease-in-out infinite' }} />
+          <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8.5px', color:'#22c55e', letterSpacing:'.04em' }}>
+            {taskDoneCount}/{taskTotalCount} tasks done
+          </span>
+        </div>
+        <button
+          onClick={onOpen}
+          style={{
+            display:'inline-flex', alignItems:'center', gap:'5px',
+            padding:'5px 12px', borderRadius:'6px', border:'none',
+            background:'rgba(139,92,246,.14)', color:'#c4b5fd',
+            fontFamily:"'DM Mono',monospace", fontSize:'8.5px',
+            letterSpacing:'.05em', cursor:'pointer',
+            transition:'background .2s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background='rgba(139,92,246,.24)'}
+          onMouseLeave={e => e.currentTarget.style.background='rgba(139,92,246,.14)'}
+        >
+          View Full Roadmap
+          <svg viewBox="0 0 12 12" fill="none" width="9" height="9">
+            <path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
     </div>
   );
 }
 
-/* ════════════════════════════════════════════════════════
-   MAIN EXPORT
-════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════
+   HERO SECTION
+════════════════════════════════════════════════════ */
 export default function HeroSection() {
   const { setSection, setActiveMonth, isTaskDone } = useApp();
 
-  const stats = useMemo(() => {
+  const { stats, done, total } = useMemo(() => {
     let tot = 0, dn = 0;
     roadmapData.forEach((mo, m) =>
       mo.weeks.forEach((wk, w) =>
         wk.days.forEach((dy, d) =>
-          dy.tasks.forEach((_, t) => {
-            tot++;
-            if (isTaskDone(m, w, d, t)) dn++;
-          })
+          dy.tasks.forEach((_, t) => { tot++; if (isTaskDone(m, w, d, t)) dn++; })
         )
       )
     );
     const totalWeeks = roadmapData.reduce((a, mo) => a + mo.weeks.length, 0);
     const totalDays  = roadmapData.reduce((a, mo) => a + mo.weeks.reduce((b, wk) => b + wk.days.length, 0), 0);
-    return [
-      { n: roadmapData.length, l: 'Months'    },
-      { n: totalWeeks,         l: 'Weeks'      },
-      { n: totalDays,          l: 'Days'       },
-      { n: `${dn}/${tot}`,     l: 'Tasks Done' },
-    ];
+    return {
+      stats: [
+        { n: roadmapData.length, l:'Months' },
+        { n: totalWeeks,         l:'Weeks'  },
+        { n: totalDays,          l:'Days'   },
+        { n: `${dn}/${tot}`,     l:'Done'   },
+      ],
+      done: dn,
+      total: tot,
+    };
   }, [isTaskDone]);
 
-  /* Update this if you import communityData */
   const memberCount = 24;
+
+  const handleOpenRoadmap = () => { setActiveMonth(0); setSection('rm'); };
 
   return (
     <>
       <style>{STYLES}</style>
 
-      <section
-        className="hs-section"
-        style={{
-          position:'relative', overflow:'hidden',
-          padding:'clamp(36px,5vh,56px) clamp(20px,4vw,52px)',
-          borderBottom:'1px solid rgba(255,255,255,.06)',
-          minHeight:'100vh', display:'flex', alignItems:'center',
-          background:`
-            radial-gradient(ellipse 70% 80% at 55% -10%,rgba(139,92,246,.08),transparent 65%),
-            radial-gradient(ellipse 30% 40% at 95% 80%, rgba(56,189,248,.05),transparent 55%)
-          `,
-        }}
-      >
-        {/* Ambient orbs */}
-        <div style={{ position:'absolute', top:'-10%', left:'35%', width:'55%', height:'70%', background:'radial-gradient(ellipse,rgba(139,92,246,.1),transparent 65%)', filter:'blur(40px)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', bottom:'-10%', right:'-5%', width:'35%', height:'50%', background:'radial-gradient(ellipse,rgba(56,189,248,.06),transparent 60%)', filter:'blur(24px)', pointerEvents:'none' }} />
-        {/* Dot grid */}
-        <div style={{ position:'absolute', inset:0, pointerEvents:'none', backgroundImage:'radial-gradient(rgba(139,92,246,.1) 1px,transparent 1px)', backgroundSize:'30px 30px', maskImage:'radial-gradient(ellipse 85% 70% at 20% 30%,black,transparent 80%)' }} />
+      <section className="ou-hero">
+        {/* ── Backgrounds ── */}
+        <div className="ou-dotgrid" />
+        <div style={{ position:'absolute', top:'-8%', left:'25%', width:'55%', height:'62%', background:'radial-gradient(ellipse,rgba(139,92,246,.1),transparent 65%)', filter:'blur(50px)', pointerEvents:'none', animation:'ou-drift-a 14s ease-in-out infinite' }} />
+        <div style={{ position:'absolute', bottom:'-20%', right:'-10%', width:'38%', height:'58%', background:'radial-gradient(ellipse,rgba(56,189,248,.07),transparent 60%)', filter:'blur(36px)', pointerEvents:'none', animation:'ou-drift-b 18s ease-in-out infinite' }} />
+        <div style={{ position:'absolute', top:'48%', left:'-5%', width:'18%', height:'36%', background:'radial-gradient(ellipse,rgba(99,102,241,.05),transparent 65%)', filter:'blur(26px)', pointerEvents:'none' }} />
 
-        {/* Grid */}
-        <div className="hs-layout" style={{ position:'relative', zIndex:2, width:'100%' }}>
+        <div className="ou-grid">
 
-          {/* ── LEFT: copy ── */}
+          {/* ════ LEFT ════ */}
           <div>
-            <motion.div {...fadeUp(0)} style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px' }}>
-              <span style={{ width:'14px', height:'1px', background:'rgba(139,92,246,.6)', display:'block' }} />
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'10px', letterSpacing:'.14em', textTransform:'uppercase', color:'rgba(139,92,246,.85)' }}>
+            {/* Live badge */}
+            <motion.div {...fadeUp(0)}>
+              <div className="ou-badge">
+                <div style={{ width:'5px', height:'5px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 7px rgba(34,197,94,.9)', animation:'ou-pulse 2s ease-in-out infinite' }} />
+                <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8.5px', color:'#86efac', letterSpacing:'.05em' }}>
+                  {memberCount} students grinding daily
+                </span>
+                <span style={{ color:'rgba(255,255,255,.13)', margin:'0 1px' }}>·</span>
+                <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8.5px', color:'rgba(255,255,255,.24)', letterSpacing:'.04em' }}>
+                  Free forever
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Eyebrow */}
+            <motion.div {...fadeUp(.06)} className="ou-eyebrow">
+              <span style={{ width:'13px', height:'1px', background:'rgba(139,92,246,.5)', display:'block', flexShrink:0 }} />
+              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8px', letterSpacing:'.18em', textTransform:'uppercase', color:'rgba(139,92,246,.65)' }}>
                 Consistency · Execution · Results
               </span>
             </motion.div>
 
-            <motion.h1 {...fadeUp(0.1)} style={{ fontFamily:"'Syne',sans-serif", fontSize:'clamp(24px,3.2vw,40px)', fontWeight:800, letterSpacing:'-.04em', lineHeight:1.05, marginBottom:'14px' }}>
-              <span style={{ background:'linear-gradient(135deg,#f5f0ff 0%,#c4b5fd 40%,#818cf8 70%,#38bdf8 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-                OfferUnlocked
-              </span>
-              {' '}🔓
-            </motion.h1>
+            {/* Headline */}
+            <motion.div {...fadeUp(.1)}>
+              <p className="ou-h1-ghost">Your Placement,</p>
+              <h1 className="ou-h1-main">Engineered.</h1>
+              <span className="ou-brand-line">OfferUnlocked 🔓</span>
+            </motion.div>
 
-            <motion.p {...fadeUp(0.15)} style={{ fontSize:'clamp(13px,1.2vw,14.5px)', lineHeight:'1.82', color:'#8b85a8', maxWidth:'400px', marginBottom:'6px', fontFamily:"'Outfit',sans-serif", fontWeight:300 }}>
-              Consistency is the key — but very few actually stay consistent.{' '}
-              A focused system to{' '}
-              <strong style={{ color:'#c4b5fd', fontWeight:500 }}>execute daily</strong>,
-              {' '}build real skills, and unlock the opportunities that matter.
+            {/* Body */}
+            <motion.p {...fadeUp(.16)} className="ou-body">
+              Most students have the talent. Very few have the{' '}
+              <strong style={{ color:'rgba(255,255,255,.68)', fontWeight:500 }}>system</strong>.
+              {' '}OfferUnlocked gives you a structured daily roadmap to build real skills and{' '}
+              <strong style={{ color:'#c4b5fd', fontWeight:500 }}>unlock the offer</strong> you've been chasing.
             </motion.p>
 
-            <motion.p {...fadeUp(0.2)} style={{ fontFamily:"'DM Mono',monospace", fontSize:'10.5px', color:'#4a4465', letterSpacing:'.05em', marginBottom:'24px' }}>
+            <motion.p {...fadeUp(.19)} className="ou-tagline">
               Not a course. Not a random group. A system.
             </motion.p>
 
-            <motion.div {...fadeUp(0.25)}>
-              <button
-                className="hs-cta"
-                onClick={() => { setActiveMonth(0); setSection('rm'); }}
-                style={{
-                  display:'inline-flex', alignItems:'center', gap:'7px',
-                  padding:'10px 22px', borderRadius:'9px', border:'none',
-                  background:'linear-gradient(135deg,#8b5cf6,#6366f1)',
-                  color:'#fff', fontFamily:"'Outfit',sans-serif", fontSize:'12.5px', fontWeight:600,
-                  cursor:'pointer', letterSpacing:'-.01em',
-                  boxShadow:'0 0 24px rgba(139,92,246,.35),inset 0 1px 0 rgba(255,255,255,.15)',
-                  transition:'all .25s',
-                }}
-              >
-                Start Journey
+            {/* CTAs */}
+            <motion.div {...fadeUp(.23)} className="ou-cta-row">
+              <button className="ou-cta-primary" onClick={handleOpenRoadmap}>
+                Start Your Journey
                 <svg viewBox="0 0 14 14" fill="none" width="12" height="12">
                   <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
+              <button className="ou-cta-ghost" onClick={() => setSection('community')}>
+                <svg viewBox="0 0 14 14" fill="none" width="11" height="11">
+                  <circle cx="5" cy="4.5" r="1.9" stroke="currentColor" strokeWidth="1.3"/>
+                  <circle cx="10" cy="4.5" r="1.9" stroke="currentColor" strokeWidth="1.3"/>
+                  <path d="M1 12c0-1.9 1.8-3.4 4-3.4s4 1.5 4 3.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  <path d="M10 8.8c1.1.4 2.4 1.5 2.4 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+                Join Community
+              </button>
             </motion.div>
 
-            {/* Stats */}
-            <motion.div {...fadeUp(0.3)} style={{ display:'flex', gap:0, marginTop:'26px', flexWrap:'wrap' }}>
-              {stats.map((s, i) => (
-                <div key={s.l} style={{ display:'flex', alignItems:'stretch' }}>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'2px' }}>
-                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'18px', fontWeight:500, background:'linear-gradient(135deg,#c4b5fd,#818cf8,#38bdf8)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-                      {s.n}
-                    </span>
-                    <span style={{ fontSize:'9.5px', color:'#4a4465', fontWeight:500, letterSpacing:'.06em', textTransform:'uppercase' }}>
-                      {s.l}
-                    </span>
-                  </div>
-                  {i < stats.length - 1 && (
-                    <div style={{ width:'1px', background:'rgba(255,255,255,.07)', margin:'4px 16px', alignSelf:'stretch' }} />
-                  )}
+            {/* Stat cards */}
+            <motion.div {...fadeUp(.28)} className="ou-stats">
+              {stats.map(s => (
+                <div key={s.l} className="ou-stat-card">
+                  <div className="ou-stat-n">{s.n}</div>
+                  <div className="ou-stat-l">{s.l}</div>
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* ── RIGHT: compact editor ── */}
-          <motion.div className="hs-editor-col" {...fadeUp(0.15)}>
-            <JavaEditor memberCount={memberCount} />
+          {/* ════ RIGHT: Roadmap Preview Card ════ */}
+          <motion.div className="ou-right-col" {...fadeUp(.14)}>
+            <RoadmapCard
+              roadmap={roadmapData}
+              taskDoneCount={done}
+              taskTotalCount={total}
+              onOpen={handleOpenRoadmap}
+            />
           </motion.div>
 
         </div>
@@ -328,3 +600,598 @@ export default function HeroSection() {
     </>
   );
 }
+
+
+// import { motion } from 'framer-motion';
+// import { useApp } from '../../context/AppContext';
+// import { roadmapData } from '../../data/roadmap';
+// import { useMemo } from 'react';
+
+// /* ─────────────────────────────────────────────────────────────
+//    OfferUnlocked — Hero Section v5
+//    Right column : Progress Dashboard Cards (no code)
+//    Layout       : Tighter & compact
+//    Tokens       : #05050e · #8b5cf6 · #6366f1 · #38bdf8 · #22c55e
+//    Fonts        : Syne 800 · DM Mono · Outfit 300-700
+// ───────────────────────────────────────────────────────────── */
+
+// const STYLES = `
+//   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+//   /* ── Keyframes ── */
+//   @keyframes ou-pulse    { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.7)} }
+//   @keyframes ou-shimmer  { 0%{background-position:-200% center} 100%{background-position:200% center} }
+//   @keyframes ou-drift-a  { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(14px,-10px) scale(1.04)} 70%{transform:translate(-8px,14px) scale(.97)} }
+//   @keyframes ou-drift-b  { 0%,100%{transform:translate(0,0)} 35%{transform:translate(-12px,8px)} 70%{transform:translate(10px,-7px)} }
+//   @keyframes ou-noise    { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-1%,1%)} 50%{transform:translate(1%,-1%)} 75%{transform:translate(-1%,-1%)} }
+//   @keyframes ou-bar      { from{width:0%} to{width:var(--bw)} }
+//   @keyframes ou-ring     { from{stroke-dashoffset:var(--full)} to{stroke-dashoffset:var(--offset)} }
+//   @keyframes ou-pop      { 0%{opacity:0;transform:scale(.88) translateY(6px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+//   @keyframes ou-count-up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+//   @keyframes ou-heat-in  { from{opacity:0;transform:scaleY(0)} to{opacity:1;transform:scaleY(1)} }
+
+//   /* ── Root ── */
+//   .ou-hero {
+//     position:relative; overflow:hidden;
+//     min-height:100vh; display:flex; align-items:center;
+//     padding:clamp(48px,7vh,72px) clamp(20px,4.5vw,60px);
+//     background:#05050e;
+//     border-bottom:1px solid rgba(255,255,255,.05);
+//   }
+//   .ou-hero::after {
+//     content:''; position:absolute; inset:-150%; width:400%; height:400%;
+//     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+//     opacity:.02; pointer-events:none;
+//     animation:ou-noise 9s steps(1) infinite;
+//   }
+//   .ou-dotgrid {
+//     position:absolute; inset:0;
+//     background-image:radial-gradient(rgba(139,92,246,.085) 1px,transparent 1px);
+//     background-size:26px 26px;
+//     mask-image:radial-gradient(ellipse 78% 68% at 9% 32%,black 8%,transparent 65%);
+//     pointer-events:none;
+//   }
+
+//   /* ── Two-col layout ── */
+//   .ou-grid {
+//     display:grid; grid-template-columns:1.08fr .92fr;
+//     gap:clamp(28px,4.5vw,52px); align-items:center;
+//     position:relative; z-index:2;
+//     width:100%; max-width:1120px; margin:0 auto;
+//   }
+//   @media(max-width:840px){ .ou-grid{ grid-template-columns:1fr; } .ou-right-col{ display:none; } }
+//   @media(max-width:460px){ .ou-hero{ padding:44px 16px; } }
+
+//   /* ── LEFT: copy elements ── */
+//   .ou-badge {
+//     display:inline-flex; align-items:center; gap:7px;
+//     padding:4px 12px 4px 8px; border-radius:100px;
+//     background:rgba(34,197,94,.065); border:1px solid rgba(34,197,94,.16);
+//     backdrop-filter:blur(12px); margin-bottom:14px; cursor:default;
+//     transition:background .25s,border-color .25s;
+//   }
+//   .ou-badge:hover{ background:rgba(34,197,94,.11); border-color:rgba(34,197,94,.28); }
+
+//   .ou-eyebrow{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+
+//   .ou-h1-ghost {
+//     font-family:'Syne',sans-serif; font-weight:700;
+//     font-size:clamp(14px,1.7vw,21px); letter-spacing:-.028em;
+//     color:rgba(255,255,255,.19); line-height:1; margin-bottom:2px;
+//   }
+//   .ou-h1-main {
+//     font-family:'Syne',sans-serif; font-weight:800;
+//     font-size:clamp(33px,4.2vw,54px); letter-spacing:-.055em; line-height:.96;
+//     background:linear-gradient(105deg,#f5f0ff 0%,#c4b5fd 28%,#818cf8 58%,#38bdf8 100%);
+//     background-size:200% auto;
+//     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+//     animation:ou-shimmer 5s linear infinite; margin-bottom:7px;
+//   }
+//   .ou-brand-line {
+//     font-family:'Syne',sans-serif; font-weight:800;
+//     font-size:clamp(13px,1.3vw,17px); letter-spacing:-.02em;
+//     background:linear-gradient(135deg,#c4b5fd,#818cf8);
+//     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+//     margin-bottom:16px; display:block;
+//   }
+//   .ou-body {
+//     font-family:'Outfit',sans-serif; font-weight:300;
+//     font-size:clamp(12.5px,1.05vw,14px); line-height:1.88;
+//     color:rgba(255,255,255,.34); max-width:400px; margin-bottom:5px;
+//   }
+//   .ou-tagline {
+//     font-family:'DM Mono',monospace; font-size:8.5px;
+//     color:#2a2646; letter-spacing:.09em; margin-bottom:22px;
+//   }
+
+//   /* CTAs */
+//   .ou-cta-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+//   .ou-cta-primary {
+//     display:inline-flex; align-items:center; gap:7px;
+//     padding:10px 20px; border-radius:8px; border:none;
+//     background:linear-gradient(135deg,#8b5cf6,#6366f1);
+//     color:#fff; font-family:'Outfit',sans-serif; font-size:12.5px; font-weight:600;
+//     cursor:pointer; letter-spacing:-.01em;
+//     box-shadow:0 0 0 1px rgba(139,92,246,.38),0 4px 16px rgba(139,92,246,.24),inset 0 1px 0 rgba(255,255,255,.15);
+//     transition:all .2s ease; position:relative; overflow:hidden;
+//   }
+//   .ou-cta-primary::before{ content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 55%); opacity:0; transition:opacity .2s; }
+//   .ou-cta-primary:hover{ transform:translateY(-2px); box-shadow:0 0 0 1px rgba(139,92,246,.58),0 10px 32px rgba(139,92,246,.4),inset 0 1px 0 rgba(255,255,255,.15); }
+//   .ou-cta-primary:hover::before{ opacity:1; }
+//   .ou-cta-primary:active{ transform:translateY(0); }
+//   .ou-cta-ghost {
+//     display:inline-flex; align-items:center; gap:6px;
+//     padding:9px 16px; border-radius:8px;
+//     border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.018);
+//     color:rgba(255,255,255,.4); font-family:'Outfit',sans-serif; font-size:12px; font-weight:500;
+//     cursor:pointer; transition:all .2s;
+//   }
+//   .ou-cta-ghost:hover{ border-color:rgba(255,255,255,.15); color:rgba(255,255,255,.75); background:rgba(255,255,255,.038); }
+
+//   /* Stat chips */
+//   .ou-stats {
+//     display:grid; grid-template-columns:repeat(4,1fr);
+//     gap:4px; margin-top:22px; padding-top:18px;
+//     border-top:1px solid rgba(255,255,255,.05);
+//   }
+//   @media(max-width:460px){ .ou-stats{ grid-template-columns:repeat(2,1fr); } }
+//   .ou-stat-card {
+//     padding:10px 10px 8px; border-radius:8px;
+//     background:rgba(255,255,255,.016); border:1px solid rgba(255,255,255,.044);
+//     transition:background .2s,border-color .2s; cursor:default;
+//   }
+//   .ou-stat-card:hover{ background:rgba(139,92,246,.065); border-color:rgba(139,92,246,.18); }
+//   .ou-stat-n {
+//     font-family:'DM Mono',monospace; font-size:clamp(14px,1.4vw,17px); font-weight:500;
+//     background:linear-gradient(135deg,#c4b5fd,#818cf8,#38bdf8);
+//     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+//     line-height:1; margin-bottom:3px;
+//   }
+//   .ou-stat-l{ font-size:7.5px; color:#2a2848; font-weight:500; letter-spacing:.12em; text-transform:uppercase; }
+
+//   /* ══════════════════════════════════════
+//      DASHBOARD CARDS — right column
+//   ══════════════════════════════════════ */
+//   .ou-dash { display:flex; flex-direction:column; gap:8px; }
+
+//   /* shared card shell */
+//   .ou-card {
+//     border-radius:14px;
+//     border:1px solid rgba(255,255,255,.068);
+//     background:rgba(255,255,255,.018);
+//     backdrop-filter:blur(18px);
+//     overflow:hidden;
+//     transition:border-color .22s, background .22s;
+//     animation:ou-pop .5s ease both;
+//   }
+//   .ou-card:hover{ border-color:rgba(139,92,246,.22); background:rgba(139,92,246,.03); }
+
+//   /* ── Card 1: Progress ring hero ── */
+//   .ou-card-main {
+//     padding:20px 22px 18px;
+//     display:flex; align-items:center; gap:20px;
+//     box-shadow:0 0 0 1px rgba(139,92,246,.06),0 18px 50px rgba(0,0,0,.5),0 0 44px rgba(139,92,246,.04);
+//   }
+
+//   /* ring container */
+//   .ou-ring-wrap{ position:relative; flex-shrink:0; width:88px; height:88px; }
+
+//   .ou-ring-label{
+//     position:absolute; inset:0;
+//     display:flex; flex-direction:column; align-items:center; justify-content:center;
+//     gap:1px;
+//   }
+//   .ou-ring-pct{
+//     font-family:'DM Mono',monospace; font-size:20px; font-weight:500;
+//     background:linear-gradient(135deg,#c4b5fd,#38bdf8);
+//     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+//     line-height:1;
+//     animation:ou-count-up .6s .2s ease both;
+//   }
+//   .ou-ring-sub{ font-family:'DM Mono',monospace; font-size:7.5px; color:#2e2a50; letter-spacing:.06em; }
+
+//   /* ring info */
+//   .ou-ring-info{ flex:1; }
+//   .ou-ring-title{
+//     font-family:'Syne',sans-serif; font-weight:800;
+//     font-size:15px; letter-spacing:-.03em;
+//     color:rgba(255,255,255,.88); margin-bottom:4px;
+//   }
+//   .ou-ring-sub2{ font-family:'Outfit',sans-serif; font-weight:300; font-size:11.5px; color:rgba(255,255,255,.3); line-height:1.6; margin-bottom:10px; }
+
+//   /* mini progress bars inside card 1 */
+//   .ou-mini-bars{ display:flex; flex-direction:column; gap:5px; }
+//   .ou-mini-bar-row{ display:flex; align-items:center; gap:8px; }
+//   .ou-mini-bar-label{ font-family:'DM Mono',monospace; font-size:8px; color:#2e2a50; width:34px; flex-shrink:0; }
+//   .ou-mini-bar-track{ flex:1; height:3px; border-radius:100px; background:rgba(255,255,255,.06); overflow:hidden; }
+//   .ou-mini-bar-fill{ height:100%; border-radius:100px; animation:ou-bar .8s ease both; }
+//   .ou-mini-bar-val{ font-family:'DM Mono',monospace; font-size:8px; color:#3a3460; width:24px; text-align:right; flex-shrink:0; }
+
+//   /* ── Row of 2 small cards ── */
+//   .ou-card-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+//   /* ── Card 2: Streak ── */
+//   .ou-card-streak{ padding:16px 18px; }
+//   .ou-card-label{
+//     font-family:'DM Mono',monospace; font-size:7.5px;
+//     color:#2e2a50; letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px;
+//   }
+//   .ou-streak-num{
+//     font-family:'DM Mono',monospace; font-size:32px; font-weight:500;
+//     background:linear-gradient(135deg,#fb923c,#f97316);
+//     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+//     line-height:1; margin-bottom:2px;
+//     animation:ou-count-up .5s .3s ease both;
+//   }
+//   .ou-streak-unit{ font-family:'Outfit',sans-serif; font-size:10px; color:rgba(255,255,255,.22); font-weight:300; }
+//   .ou-streak-dots{ display:flex; gap:4px; margin-top:10px; }
+//   .ou-streak-dot{ width:9px; height:9px; border-radius:3px; }
+
+//   /* ── Card 3: Deadline ── */
+//   .ou-card-deadline{ padding:16px 18px; }
+//   .ou-deadline-num{
+//     font-family:'DM Mono',monospace; font-size:32px; font-weight:500;
+//     background:linear-gradient(135deg,#fbbf24,#fb923c);
+//     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+//     line-height:1; margin-bottom:2px;
+//     animation:ou-count-up .5s .35s ease both;
+//   }
+//   .ou-deadline-unit{ font-family:'Outfit',sans-serif; font-size:10px; color:rgba(255,255,255,.22); font-weight:300; }
+
+//   /* deadline micro bar */
+//   .ou-dl-track{ width:100%; height:3px; border-radius:100px; background:rgba(255,255,255,.06); overflow:hidden; margin-top:10px; }
+//   .ou-dl-fill{ height:100%; border-radius:100px; background:linear-gradient(90deg,#fbbf24,#fb923c); animation:ou-bar .8s .4s ease both; }
+
+//   /* ── Card 4: Heatmap ── */
+//   .ou-card-heat{ padding:14px 18px 16px; }
+//   .ou-heat-grid{
+//     display:grid;
+//     grid-template-columns:repeat(10,1fr);
+//     gap:3px; margin-top:10px;
+//   }
+//   .ou-heat-cell{
+//     aspect-ratio:1; border-radius:2.5px;
+//     animation:ou-heat-in .3s ease both;
+//   }
+
+//   /* ── Live dot ── */
+//   .ou-live-dot{
+//     width:5px; height:5px; border-radius:50%;
+//     background:#22c55e; box-shadow:0 0 7px rgba(34,197,94,.9);
+//     animation:ou-pulse 2s ease-in-out infinite; flex-shrink:0;
+//   }
+// `;
+
+// /* ── Motion preset ── */
+// const fadeUp = (delay = 0) => ({
+//   initial:    { opacity: 0, y: 18 },
+//   animate:    { opacity: 1, y: 0 },
+//   transition: { duration: .58, ease: [.25, .46, .45, .94], delay },
+// });
+
+// /* ── SVG Progress Ring ── */
+// function ProgressRing({ pct, size = 88, stroke = 7 }) {
+//   const r   = (size - stroke) / 2;
+//   const circ = 2 * Math.PI * r;
+//   const off  = circ * (1 - pct / 100);
+//   return (
+//     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+//       <defs>
+//         <linearGradient id="ring-g" x1="0" y1="0" x2="1" y2="1">
+//           <stop offset="0%" stopColor="#8b5cf6"/>
+//           <stop offset="50%" stopColor="#6366f1"/>
+//           <stop offset="100%" stopColor="#38bdf8"/>
+//         </linearGradient>
+//       </defs>
+//       {/* track */}
+//       <circle cx={size/2} cy={size/2} r={r} fill="none"
+//         stroke="rgba(255,255,255,.055)" strokeWidth={stroke}/>
+//       {/* fill */}
+//       <circle cx={size/2} cy={size/2} r={r} fill="none"
+//         stroke="url(#ring-g)" strokeWidth={stroke}
+//         strokeLinecap="round"
+//         strokeDasharray={circ}
+//         strokeDashoffset={off}
+//         transform={`rotate(-90 ${size/2} ${size/2})`}
+//         style={{
+//           transition:'stroke-dashoffset .9s cubic-bezier(.34,1.56,.64,1)',
+//         }}
+//       />
+//     </svg>
+//   );
+// }
+
+// /* ── Dashboard right column ── */
+// function Dashboard({ done, total, streak, monthsDone, totalMonths, daysLeft, totalDays }) {
+//   const pct        = total > 0 ? Math.round((done / total) * 100) : 0;
+//   const deadlinePct = Math.max(0, Math.round(((totalDays - daysLeft) / totalDays) * 100));
+
+//   /* heatmap: 30 cells — simulate activity */
+//   const heatCells = Array.from({ length: 30 }, (_, i) => {
+//     if (i < streak) return 'done';
+//     if (i === streak) return 'today';
+//     return 'empty';
+//   });
+
+//   const cellColor = (type) => {
+//     if (type === 'done')  return { background:'rgba(139,92,246,.55)', boxShadow:'0 0 4px rgba(139,92,246,.3)' };
+//     if (type === 'today') return { background:'rgba(56,189,248,.65)', boxShadow:'0 0 5px rgba(56,189,248,.4)' };
+//     return { background:'rgba(255,255,255,.04)' };
+//   };
+
+//   const DAYS = ['M','T','W','T','F','S','S'];
+//   const streakActive = Math.min(streak, 7);
+
+//   return (
+//     <div className="ou-dash">
+
+//       {/* ── Card 1: Big progress ring ── */}
+//       <div className="ou-card ou-card-main" style={{ animationDelay:'.12s' }}>
+//         <div className="ou-ring-wrap">
+//           <ProgressRing pct={pct} />
+//           <div className="ou-ring-label">
+//             <span className="ou-ring-pct">{pct}%</span>
+//             <span className="ou-ring-sub">done</span>
+//           </div>
+//         </div>
+
+//         <div className="ou-ring-info">
+//           <div className="ou-ring-title">Overall Progress</div>
+//           <div className="ou-ring-sub2">{done} of {total} tasks<br/>completed so far</div>
+//           <div className="ou-mini-bars">
+//             {[
+//               { label:'Tasks',  val: pct,                          color:'linear-gradient(90deg,#8b5cf6,#6366f1)', delay:'.5s' },
+//               { label:'Months', val: Math.round((monthsDone / totalMonths) * 100), color:'linear-gradient(90deg,#38bdf8,#818cf8)', delay:'.6s' },
+//               { label:'Time',   val: deadlinePct,                  color:'linear-gradient(90deg,#22c55e,#38bdf8)', delay:'.7s' },
+//             ].map(b => (
+//               <div key={b.label} className="ou-mini-bar-row">
+//                 <span className="ou-mini-bar-label">{b.label}</span>
+//                 <div className="ou-mini-bar-track">
+//                   <div className="ou-mini-bar-fill" style={{ background:b.color, '--bw':`${b.val}%`, width:`${b.val}%`, animationDelay:b.delay }} />
+//                 </div>
+//                 <span className="ou-mini-bar-val">{b.val}%</span>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ── Row: Streak + Deadline ── */}
+//       <div className="ou-card-row">
+
+//         {/* Streak */}
+//         <div className="ou-card ou-card-streak" style={{ animationDelay:'.2s' }}>
+//           <div className="ou-card-label">Streak 🔥</div>
+//           <div className="ou-streak-num">{streak}</div>
+//           <div className="ou-streak-unit">days in a row</div>
+//           <div className="ou-streak-dots">
+//             {DAYS.map((d, i) => (
+//               <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px' }}>
+//                 <div className="ou-streak-dot" style={{
+//                   background: i < streakActive ? 'rgba(251,146,60,.72)' : 'rgba(255,255,255,.05)',
+//                   boxShadow:  i < streakActive ? '0 0 6px rgba(251,146,60,.35)' : 'none',
+//                 }} />
+//                 <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'6px', color:'#24204a' }}>{d}</span>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Deadline */}
+//         <div className="ou-card ou-card-deadline" style={{ animationDelay:'.24s' }}>
+//           <div className="ou-card-label">Deadline ⏳</div>
+//           <div className="ou-deadline-num">{daysLeft}</div>
+//           <div className="ou-deadline-unit">days remaining</div>
+//           <div className="ou-dl-track">
+//             <div className="ou-dl-fill" style={{ '--bw':`${deadlinePct}%`, width:`${deadlinePct}%` }} />
+//           </div>
+//           <div style={{ marginTop:'5px', display:'flex', justifyContent:'space-between' }}>
+//             <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'7.5px', color:'#2a2448' }}>Day 1</span>
+//             <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'7.5px', color:'#2a2448' }}>Aug 15</span>
+//           </div>
+//         </div>
+
+//       </div>
+
+//       {/* ── Card 3: Activity heatmap ── */}
+//       <div className="ou-card ou-card-heat" style={{ animationDelay:'.3s' }}>
+//         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+//           <div className="ou-card-label" style={{ marginBottom:0 }}>Activity — Last 30 Days</div>
+//           <div style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+//             <div className="ou-live-dot" />
+//             <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8px', color:'#22c55e', letterSpacing:'.04em' }}>live</span>
+//           </div>
+//         </div>
+//         <div className="ou-heat-grid">
+//           {heatCells.map((type, i) => (
+//             <div
+//               key={i}
+//               className="ou-heat-cell"
+//               style={{ ...cellColor(type), animationDelay:`${.3 + i * .012}s` }}
+//               title={type === 'done' ? 'Completed' : type === 'today' ? 'Today' : 'Upcoming'}
+//             />
+//           ))}
+//         </div>
+//         <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:'8px', marginTop:'6px' }}>
+//           {[
+//             { bg:'rgba(255,255,255,.05)', label:'None' },
+//             { bg:'rgba(139,92,246,.4)',   label:'Done' },
+//             { bg:'rgba(56,189,248,.55)',  label:'Today' },
+//           ].map(l => (
+//             <div key={l.label} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
+//               <div style={{ width:'7px', height:'7px', borderRadius:'2px', background:l.bg }} />
+//               <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'7px', color:'#24204a' }}>{l.label}</span>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+
+//     </div>
+//   );
+// }
+
+// /* ════════════════════════════════════════════════════
+//    HERO SECTION
+// ════════════════════════════════════════════════════ */
+// export default function HeroSection() {
+//   const { setSection, setActiveMonth, isTaskDone } = useApp();
+
+//   const { stats, done, total, streak, monthsDone } = useMemo(() => {
+//     let tot = 0, dn = 0;
+//     roadmapData.forEach((mo, m) =>
+//       mo.weeks.forEach((wk, w) =>
+//         wk.days.forEach((dy, d) =>
+//           dy.tasks.forEach((_, t) => { tot++; if (isTaskDone(m, w, d, t)) dn++; })
+//         )
+//       )
+//     );
+
+//     const totalWeeks = roadmapData.reduce((a, mo) => a + mo.weeks.length, 0);
+//     const totalDays  = roadmapData.reduce((a, mo) => a + mo.weeks.reduce((b, wk) => b + wk.days.length, 0), 0);
+
+//     /* streak = consecutive fully-completed days from start */
+//     let sk = 0;
+//     outer: for (const mo of roadmapData) {
+//       const mi = roadmapData.indexOf(mo);
+//       for (const wk of mo.weeks) {
+//         const wi = mo.weeks.indexOf(wk);
+//         for (const dy of wk.days) {
+//           const di = wk.days.indexOf(dy);
+//           if (dy.tasks.every((_, t) => isTaskDone(mi, wi, di, t))) sk++;
+//           else break outer;
+//         }
+//       }
+//     }
+
+//     /* months with at least one task done */
+//     let mDone = 0;
+//     roadmapData.forEach((mo, m) => {
+//       const anyDone = mo.weeks.some((wk, w) =>
+//         wk.days.some((dy, d) => dy.tasks.some((_, t) => isTaskDone(m, w, d, t)))
+//       );
+//       if (anyDone) mDone++;
+//     });
+
+//     return {
+//       stats: [
+//         { n: roadmapData.length, l:'Months' },
+//         { n: totalWeeks,         l:'Weeks'  },
+//         { n: totalDays,          l:'Days'   },
+//         { n: `${dn}/${tot}`,     l:'Done'   },
+//       ],
+//       done: dn, total: tot, streak: sk,
+//       monthsDone: mDone,
+//     };
+//   }, [isTaskDone]);
+
+//   const memberCount = 24;
+//   const TOTAL_DAYS  = 90;  // adjust to your actual programme length
+//   const daysLeft    = 42;  // replace with real deadline calc if available
+
+//   return (
+//     <>
+//       <style>{STYLES}</style>
+
+//       <section className="ou-hero">
+//         {/* Backgrounds */}
+//         <div className="ou-dotgrid" />
+//         <div style={{ position:'absolute', top:'-8%', left:'25%', width:'55%', height:'62%', background:'radial-gradient(ellipse,rgba(139,92,246,.1),transparent 65%)', filter:'blur(50px)', pointerEvents:'none', animation:'ou-drift-a 14s ease-in-out infinite' }} />
+//         <div style={{ position:'absolute', bottom:'-20%', right:'-10%', width:'38%', height:'58%', background:'radial-gradient(ellipse,rgba(56,189,248,.07),transparent 60%)', filter:'blur(36px)', pointerEvents:'none', animation:'ou-drift-b 18s ease-in-out infinite' }} />
+//         <div style={{ position:'absolute', top:'48%', left:'-5%', width:'18%', height:'36%', background:'radial-gradient(ellipse,rgba(99,102,241,.05),transparent 65%)', filter:'blur(26px)', pointerEvents:'none' }} />
+
+//         <div className="ou-grid">
+
+//           {/* ════ LEFT ════ */}
+//           <div>
+//             {/* Live badge */}
+//             <motion.div {...fadeUp(0)}>
+//               <div className="ou-badge">
+//                 <div className="ou-live-dot" style={{ width:'5px', height:'5px' }} />
+//                 <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8.5px', color:'#86efac', letterSpacing:'.05em' }}>
+//                   {memberCount} students grinding daily
+//                 </span>
+//                 <span style={{ color:'rgba(255,255,255,.13)', margin:'0 1px' }}>·</span>
+//                 <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8.5px', color:'rgba(255,255,255,.24)', letterSpacing:'.04em' }}>
+//                   Free forever
+//                 </span>
+//               </div>
+//             </motion.div>
+
+//             {/* Eyebrow */}
+//             <motion.div {...fadeUp(.06)} className="ou-eyebrow">
+//               <span style={{ width:'13px', height:'1px', background:'rgba(139,92,246,.5)', display:'block', flexShrink:0 }} />
+//               <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'8px', letterSpacing:'.18em', textTransform:'uppercase', color:'rgba(139,92,246,.65)' }}>
+//                 Consistency · Execution · Results
+//               </span>
+//             </motion.div>
+
+//             {/* Headline */}
+//             <motion.div {...fadeUp(.1)}>
+//               <p className="ou-h1-ghost">Your Placement,</p>
+//               <h1 className="ou-h1-main">Engineered.</h1>
+//               <span className="ou-brand-line">OfferUnlocked 🔓</span>
+//             </motion.div>
+
+//             {/* Body */}
+//             <motion.p {...fadeUp(.16)} className="ou-body">
+//               Most students have the talent. Very few have the{' '}
+//               <strong style={{ color:'rgba(255,255,255,.68)', fontWeight:500 }}>system</strong>.
+//               {' '}OfferUnlocked gives you a structured daily roadmap to build real skills and{' '}
+//               <strong style={{ color:'#c4b5fd', fontWeight:500 }}>unlock the offer</strong> you've been chasing.
+//             </motion.p>
+
+//             <motion.p {...fadeUp(.19)} className="ou-tagline">
+//               Not a course. Not a random group. A system.
+//             </motion.p>
+
+//             {/* CTAs */}
+//             <motion.div {...fadeUp(.23)} className="ou-cta-row">
+//               <button
+//                 className="ou-cta-primary"
+//                 onClick={() => { setActiveMonth(0); setSection('rm'); }}
+//               >
+//                 Start Your Journey
+//                 <svg viewBox="0 0 14 14" fill="none" width="12" height="12">
+//                   <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+//                 </svg>
+//               </button>
+//               <button className="ou-cta-ghost" onClick={() => setSection('community')}>
+//                 <svg viewBox="0 0 14 14" fill="none" width="11" height="11">
+//                   <circle cx="5" cy="4.5" r="1.9" stroke="currentColor" strokeWidth="1.3"/>
+//                   <circle cx="10" cy="4.5" r="1.9" stroke="currentColor" strokeWidth="1.3"/>
+//                   <path d="M1 12c0-1.9 1.8-3.4 4-3.4s4 1.5 4 3.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+//                   <path d="M10 8.8c1.1.4 2.4 1.5 2.4 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+//                 </svg>
+//                 Join Community
+//               </button>
+//             </motion.div>
+
+//             {/* Stat chips */}
+//             <motion.div {...fadeUp(.28)} className="ou-stats">
+//               {stats.map(s => (
+//                 <div key={s.l} className="ou-stat-card">
+//                   <div className="ou-stat-n">{s.n}</div>
+//                   <div className="ou-stat-l">{s.l}</div>
+//                 </div>
+//               ))}
+//             </motion.div>
+//           </div>
+
+//           {/* ════ RIGHT: Dashboard ════ */}
+//           <motion.div className="ou-right-col" {...fadeUp(.14)}>
+//             <Dashboard
+//               done={done}
+//               total={total}
+//               streak={streak}
+//               monthsDone={monthsDone}
+//               totalMonths={roadmapData.length}
+//               daysLeft={daysLeft}
+//               totalDays={TOTAL_DAYS}
+//             />
+//           </motion.div>
+
+//         </div>
+//       </section>
+//     </>
+//   );
+// }

@@ -1,21 +1,21 @@
-import { useApp } from '../../context/AppContext';
-import { useCountdown } from '../../hooks/useCountdown';
-import { useMemo } from 'react';
+import { useApp } from "../../context/AppContext";
+import { useCountdown } from "../../hooks/useCountdown";
+import { useMemo } from "react";
 
 export default function Topbar({ onHamburger }) {
   const { section, setSection, setActiveMonth, overallPercent } = useApp();
-  const daysLeft  = useCountdown();
-  const pct       = useMemo(() => overallPercent(), [overallPercent]);
+  const daysLeft = useCountdown();
+  const pct = useMemo(() => overallPercent(), [overallPercent]);
 
   function goTo(sec, month = 0) {
-    if (sec === 'rm') setActiveMonth(month);
+    if (sec === "rm") setActiveMonth(month);
     setSection(sec);
   }
 
   const navItems = [
-    { id: 'hero', label: 'Overview', icon: '⌂' },
-    { id: 'rm',   label: 'Roadmap',  icon: '◎' },
-    { id: 'comm', label: 'Community',icon: '◈' },
+    { id: "hero", label: "Overview", icon: "⌂" },
+    { id: "rm", label: "Roadmap", icon: "◎" },
+    { id: "comm", label: "Community", icon: "◈" },
   ];
 
   return (
@@ -40,25 +40,22 @@ export default function Topbar({ onHamburger }) {
             px-2 py-1 rounded-[6px] text-[15px] cursor-pointer
             bg-transparent
           "
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           id="hamBtn"
         >
           ☰
         </button>
 
         {/* Logo mark */}
-        <div
+        {/* Logo Image */}
+        <img
+          src="/logo.png"
+          alt="OfferUnlocked Logo"
           className="
-            relative w-[30px] h-[30px] rounded-[9px] flex items-center justify-center
-            text-[16px] shadow-logo logo-glow flex-shrink-0
-            bg-gradient-to-br from-ou-p to-ou-b
-          "
-        >
-          🔓
-        </div>
-        <span className="grad-text font-bold text-[15px] tracking-[-0.025em]">
-          OfferUnlocked
-        </span>
+    h-[32px] w-auto object-contain
+    flex-shrink-0 select-none
+  "
+        />
         <span
           className="
             font-mono text-[9px] tracking-[0.06em] text-ou-text3
@@ -86,9 +83,10 @@ export default function Topbar({ onHamburger }) {
                 flex items-center gap-[6px] px-3 py-[5px] rounded-[7px]
                 font-sans text-[12px] font-medium cursor-pointer
                 whitespace-nowrap border-0 transition-all duration-[180ms]
-                ${section === id
-                  ? 'bg-[rgba(139,92,246,.15)] text-ou-text shadow-[inset_0_0_0_1px_rgba(139,92,246,.22)]'
-                  : 'bg-transparent text-ou-text3 hover:bg-ou-bg3 hover:text-ou-text2'
+                ${
+                  section === id
+                    ? "bg-[rgba(139,92,246,.15)] text-ou-text shadow-[inset_0_0_0_1px_rgba(139,92,246,.22)]"
+                    : "bg-transparent text-ou-text3 hover:bg-ou-bg3 hover:text-ou-text2"
                 }
               `}
             >
@@ -133,7 +131,7 @@ export default function Topbar({ onHamburger }) {
             DAYS LEFT
           </span>
           <span className="grad-text font-mono text-[12px] font-medium">
-            {daysLeft > 0 ? `${daysLeft} days` : 'TODAY!'}
+            {daysLeft > 0 ? `${daysLeft} days` : "TODAY!"}
           </span>
         </div>
       </div>
