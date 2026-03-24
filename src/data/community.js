@@ -64,7 +64,7 @@ members: [
     name:     'Ghousia Mulla',
     college:  'St Johns college of engineering and technology',
      year:     '2026',
-    image:    'https://cdn.discordapp.com/attachments/1481895169602355216/1484227786662088896/LinkedInProfile.jpg?ex=69bd7657&is=69bc24d7&hm=7f8f6bb8d7b70f1f9d31d151dada4c828b536b5434b76660ff1e6b064ad5afd4',
+    image:    'https://media.licdn.com/dms/image/v2/D4D35AQEBQ6pk2a05Qw/profile-framedphoto-shrink_400_400/B4DZjX3ZGsH0Ac-/0/1755968279266?e=1774933200&v=beta&t=JGBm2L2fM47b11jqKvlVisFadVW-gq0Am_ssSvozYJ0',
     gender:   'female',
     linkedin: 'https://www.linkedin.com/in/mghousia/',
   },
