@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 
 // Layout
-import Topbar  from './Components/layout/Topbar';
-import Sidebar from './Components/layout/Sidebar';
+import Topbar  from './components/layout/Topbar';
+import Sidebar from './components/layout/Sidebar';
 
-// Sections
-import HeroSection      from './Components/sections/HeroSection';
+
+import HeroSection      from './components/sections/HeroSection';
 import BrandStatement   from './components/sections/BrandStatement';
 import OutcomeCards     from './components/sections/OutcomeCards';
-import MotivationBanner from './Components/sections/MotivationBanner';
+import MotivationBanner from './components/sections/MotivationBanner';
 
 // Roadmap
-import RoadmapSection from './Components/roadmap/RoadmapSection';
+import RoadmapSection from './components/roadmap/RoadmapSection';
 
 // Community
-import CommunitySection from './Components/community/CommunitySection';
+import CommunitySection from './components/community/CommunitySection';
 
 // Admin
 import AdminPanel from './components/admin/AdminPanel';
