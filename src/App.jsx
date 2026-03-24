@@ -7,8 +7,8 @@ import Sidebar from './Components/layout/Sidebar';
 
 // Sections
 import HeroSection      from './Components/sections/HeroSection';
-import BrandStatement   from './Components/sections/BrandStatement';
-import OutcomeCards     from './Components/sections/OutcomeCards';
+import BrandStatement   from './components/sections/BrandStatement';
+import OutcomeCards     from './components/sections/OutcomeCards';
 import MotivationBanner from './Components/sections/MotivationBanner';
 
 // Roadmap
